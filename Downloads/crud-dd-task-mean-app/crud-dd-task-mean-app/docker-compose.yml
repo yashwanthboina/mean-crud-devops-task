@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  frontend:
+    image: boinayaswanth/mean-frontend:latest
+    container_name: mean-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  backend:
+    image: boinayaswanth/mean-backend:latest
+    container_name: mean-backend
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/tutorials_db
+    ports:
+      - "8081:8080"   # if your server.js listens on 8080
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
