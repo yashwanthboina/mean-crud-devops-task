@@ -1,0 +1,44 @@
+name: MEAN CI-CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build & push backend
+        run: |
+          cd Downloads/crud-dd-task-mean-app/crud-dd-task-mean-app/backend
+          docker build -t boinayaswanth/mean-backend:latest .
+          docker push boinayaswanth/mean-backend:latest
+
+      - name: Build & push frontend
+        run: |
+          cd Downloads/crud-dd-task-mean-app/crud-dd-task-mean-app/frontend
+          docker build -t boinayaswanth/mean-frontend:latest .
+          docker push boinayaswanth/mean-frontend:latest
+
+      - name: Deploy on VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VM_IP }}
+          username: ubuntu
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            cd ~/mean-crud-devops-task/Downloads/crud-dd-task-mean-app/crud-dd-task-mean-app
+            git pull
+            docker-compose pull
+            docker-compose down
+            docker-compose up -d
